@@ -2,10 +2,21 @@
 
 A Next.js application that generates Brand Visibility Snapshots and Sales Starter Kits using OpenAI's GPT-4o-mini model.
 
+## 🚀 New Feature: Web Search Integration!
+
+```
+Me: "I need to analyze this brand"
+AI: "Let me just... *searches the entire internet*"
+Me: "Perfect, exactly what I needed"
+```
+
+Now powered by OpenAI's Responses API with `web_search` - because sometimes you need the AI to actually Google things for you! 🔍✨
+
 ## Features
 
-- **Brand Visibility Snapshot**: Analyzes what a brand does, their category, offerings, target segments, brand voice, and visibility opportunities
+- **Brand Visibility Snapshot**: Analyzes what a brand does, their category, offerings, target segments, brand voice, and visibility opportunities (now with real-time web search! 🌐)
 - **Sales Starter Kit**: Generates buyer roles, pain points, value angles, cold email openers, LinkedIn DM messages, discovery questions, and thought-leadership talking points
+- **Web Search Integration**: Uses OpenAI's Responses API to fetch current information from the internet, ensuring your brand analysis is always up-to-date
 
 ## Setup
 
