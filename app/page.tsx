@@ -12,6 +12,8 @@ export default function Home() {
   );
   const [salesStarterKit, setSalesStarterKit] =
     useState<SalesStarterKit | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +50,94 @@ export default function Home() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const formatResultsForSharing = (brandName: string): string => {
+    if (!brandSnapshot || !salesStarterKit) return '';
+
+    let text = `Brand Intelligence Report: ${brandName}\n\n`;
+    text += '='.repeat(50) + '\n\n';
+    
+    text += 'BRAND VISIBILITY SNAPSHOT\n';
+    text += '-'.repeat(50) + '\n';
+    text += `What They Do: ${brandSnapshot.whatTheyDo}\n\n`;
+    text += `Category: ${brandSnapshot.category}\n\n`;
+    text += `Primary Offerings:\n${brandSnapshot.primaryOfferings.map(o => `  • ${o}`).join('\n')}\n\n`;
+    text += `Target Segments:\n${brandSnapshot.targetSegments.map(s => `  • ${s}`).join('\n')}\n\n`;
+    text += `Brand Voice: ${brandSnapshot.brandVoice}\n\n`;
+    text += `Visibility Opportunities:\n${brandSnapshot.visibilityOpportunities.map(o => `  • ${o}`).join('\n')}\n\n`;
+    
+    text += '='.repeat(50) + '\n\n';
+    
+    text += 'SALES STARTER KIT\n';
+    text += '-'.repeat(50) + '\n';
+    text += `Primary Buyer Roles:\n${salesStarterKit.buyerRoles.map(r => `  • ${r}`).join('\n')}\n\n`;
+    text += `Key Pain Points:\n${salesStarterKit.painPoints.map(p => `  • ${p}`).join('\n')}\n\n`;
+    text += `Recommended Value Angles:\n${salesStarterKit.valueAngles.map(v => `  • ${v}`).join('\n')}\n\n`;
+    text += `Cold Email Opener:\n${salesStarterKit.coldEmailOpener}\n\n`;
+    text += `LinkedIn DM Message:\n${salesStarterKit.linkedInDMMessage}\n\n`;
+    text += `Discovery Questions:\n${salesStarterKit.discoveryQuestions.map(q => `  • ${q}`).join('\n')}\n\n`;
+    text += `Thought-Leadership Talking Point:\n${salesStarterKit.thoughtLeadershipPoint}\n`;
+    
+    return text;
+  };
+
+  const handleCopyToClipboard = async () => {
+    if (!brandSnapshot || !salesStarterKit || !brand) return;
+
+    const text = formatResultsForSharing(brand);
+    
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed:', fallbackErr);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!brandSnapshot || !salesStarterKit || !brand) return;
+
+    const text = formatResultsForSharing(brand);
+    const title = `Brand Intelligence Report: ${brand}`;
+
+    // Check if Web Share API is available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: text,
+        });
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+      } catch (err) {
+        // User cancelled or error occurred
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Share failed:', err);
+          // Fallback to copy if share fails
+          handleCopyToClipboard();
+        }
+      }
+    } else {
+      // Fallback to copy if Web Share API is not available
+      handleCopyToClipboard();
     }
   };
 
@@ -98,6 +188,50 @@ export default function Home() {
 
         {brandSnapshot && salesStarterKit && (
           <div className="space-y-6">
+            {/* Action Buttons */}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleCopyToClipboard}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center gap-2"
+              >
+                {copySuccess ? (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleShare}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                {shareSuccess ? (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Shared!
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                    Share
+                  </>
+                )}
+              </button>
+            </div>
+
             {/* Brand Visibility Snapshot Card */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
